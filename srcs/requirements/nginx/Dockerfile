@@ -1,11 +1,12 @@
-# FROM debian:buster
+FROM debian:buster
 
-# RUN apt-get update
-# RUN apt-get -y upgrade
-# RUN apt-get install -y openssl php-gd php-xml nano nginx
-# EXPOSE 443
-# COPY ./conf/    /var/www/
-# RUN chmod +x /var/www/nginx.sh
-# ENTRYPOINT ["/var/www/nginx.sh"]
-# CMD ["nginx", "-g", "daemon off;"]
+RUN apt update && apt install openssl nginx -y \
+    && openssl req -x509 -nodes -days 365 -newkey rsa:2048 \ 
+        -keyout /etc/ssl/private/nginx.key -out /etc/ssl/certs/nginx.crt \
+        -subj "/C=RU/ST=Moscow/L=Moscow/O=school21/OU=celys"
+        
+COPY ./conf/default etc/nginx/sites-enabled/default
 
+EXPOSE 443
+
+CMD ["nginx", "-g", "daemon off;"]

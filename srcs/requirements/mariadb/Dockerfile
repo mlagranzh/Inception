@@ -1,15 +1,22 @@
 FROM debian:buster
 
-LABEL maintainer="Jraye"
+ARG DB_NAME 
+ARG DB_USER
+ARG DB_USER_PASSWORD
+ARG DB_ROOT_PASSWORD 
 
-RUN apt update && \
-	apt upgrade -y && \
-	apt install -y mariadb-server
+RUN apt update && apt install mariadb-server -y
 
-RUN mkdir -p /run/mysqld
-COPY ./my.cnf /etc/my.cnf
-COPY start_mariadb.sh ./
+COPY 50-server.cnf /etc/mysql/mariadb.conf.d/
+COPY createdb.sql /
+COPY file.sql /
+COPY edit-env.sh ./
 
-EXPOSE 3307
+RUN bash ./edit-env.sh
 
-ENTRYPOINT sh ./start_mariadb.sh
+RUN service mysql start && mysql < createdb.sql \
+&& mysql -u root -p"$DB_ROOT_PASSWORD" wordpress < file.sql 
+
+EXPOSE 3306
+
+CMD /usr/bin/mysqld_safe
